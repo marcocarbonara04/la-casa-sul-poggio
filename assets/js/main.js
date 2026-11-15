@@ -27,6 +27,7 @@
     lastFocusedEl: null,
     checkin: '',
     checkout: '',
+    datesUserSelected: false,
     calYear: new Date().getFullYear(),
     calMonth: new Date().getMonth(),
     calSelecting: 'checkin',
@@ -598,6 +599,7 @@
         el.readOnly = true;
         if (typeof el.setAttribute === 'function') el.setAttribute('inputmode', 'none');
         if (el.dataset) el.dataset.iso = val || '';
+        el.placeholder = state.lang === 'en' ? 'Select date' : 'Seleziona data';
         el.value = val ? formatDateReadable(val) : '';
       } else {
         if (isHero && el.type !== 'date') el.type = 'date';
@@ -814,6 +816,7 @@
     ) {
       state.checkin = clickedISO;
       state.checkout = '';
+      state.datesUserSelected = false;
       state.calSelecting = 'checkout';
     } else {
       if (computeNights(state.checkin, clickedISO) < CONFIG.minNights) {
@@ -821,6 +824,7 @@
         return;
       }
       state.checkout = clickedISO;
+      state.datesUserSelected = true;
       state.calSelecting = 'checkin';
       if (instance === 'hero') {
         setTimeout(() => setHeroCalendarOpen(false), 220);
@@ -879,6 +883,12 @@
       }
     }
 
+    state.datesUserSelected = Boolean(
+      state.checkin &&
+      state.checkout &&
+      computeNights(state.checkin, state.checkout) >= CONFIG.minNights
+    );
+
     syncDateInputs();
     renderCalendars();
     updateStaySummary();
@@ -886,22 +896,11 @@
 
   function initDates() {
     const today = new Date();
-    const checkinDefault = new Date(today);
-    checkinDefault.setDate(checkinDefault.getDate() + 14);
-    const checkoutDefault = new Date(checkinDefault);
-    checkoutDefault.setDate(checkoutDefault.getDate() + 3);
-
-    const defaultIn = formatDateISO(checkinDefault);
-    const defaultOut = formatDateISO(checkoutDefault);
-    if (!rangeHasBookedDate(defaultIn, defaultOut)) {
-      state.checkin = defaultIn;
-      state.checkout = defaultOut;
-    } else {
-      state.checkin = '';
-      state.checkout = '';
-    }
-    state.calYear = checkinDefault.getFullYear();
-    state.calMonth = checkinDefault.getMonth();
+    state.checkin = '';
+    state.checkout = '';
+    state.datesUserSelected = false;
+    state.calYear = today.getFullYear();
+    state.calMonth = today.getMonth();
     state.calSelecting = 'checkin';
 
     syncDateInputs();
@@ -1790,6 +1789,7 @@
       if (e.target.closest('[data-cal-reset]')) {
         state.checkin = '';
         state.checkout = '';
+        state.datesUserSelected = false;
         state.calSelecting = 'checkin';
         syncDateInputs();
         renderCalendars();
@@ -1889,7 +1889,15 @@
       });
     });
 
-    // Hero Booking Bar -> Send Pre-filled WhatsApp Quote Directly (IT/EN)
+    // Direct Booking Helpers & Hero / Form / Sticky WhatsApp Actions
+    function triggerWhatsAppBooking() {
+      const dict = getDict();
+      const payload = state.datesUserSelected ? collectBookingPayload('whatsapp') : null;
+      const message = payload && payload.valid ? payload.message : '';
+      const waUrl = openWhatsApp(message);
+      showFormFeedback('success', dict.booking.successWa, waUrl);
+    }
+
     document.getElementById('hero-booking-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       setHeroCalendarOpen(false);
@@ -1903,33 +1911,8 @@
         syncPartyState('hero');
       }
 
-      const dict = getDict();
-      const payload = collectBookingPayload('whatsapp');
-      if (!payload.valid) {
-        setHeroCalendarOpen(true);
-        const heroHint = document.querySelector('#hero-cal-popover [data-cal-hint]');
-        if (heroHint) heroHint.textContent = payload.error;
-        showFormFeedback('error', payload.error);
-        return;
-      }
-      const waUrl = openWhatsApp(payload.message);
-      showFormFeedback('success', dict.booking.successWa, waUrl);
+      triggerWhatsAppBooking();
     });
-
-    // Direct Booking Buttons (WhatsApp, Email, Sticky Bar & Copy)
-    function triggerWhatsAppBooking() {
-      const dict = getDict();
-      const payload = collectBookingPayload('whatsapp');
-      if (!payload.valid) {
-        showFormFeedback('error', payload.error);
-        const calTarget = document.getElementById('calendario') || document.getElementById('booking-calendar');
-        scrollToTarget(calTarget, -92);
-        highlightBookingCalendar();
-        return;
-      }
-      const waUrl = openWhatsApp(payload.message);
-      showFormFeedback('success', dict.booking.successWa, waUrl);
-    }
 
     document.getElementById('booking-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
