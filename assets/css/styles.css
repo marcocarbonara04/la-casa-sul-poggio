@@ -2974,30 +2974,41 @@ textarea.form-control {
    OTTIMIZZAZIONE RESPONSIVE TELEFONI (320px - 767px)
    ========================================================================== */
 @media (max-width: 767px) {
+  .site-header:not(.is-scrolled) {
+    background: var(--bg-dark);
+  }
+
   .hero {
     background-color: var(--bg-dark);
+    min-height: auto;
     justify-content: flex-start;
-    padding-top: calc(var(--nav-height) + 1rem);
-    padding-bottom: 2rem;
+    padding-top: var(--nav-height);
+    padding-bottom: 2.25rem;
   }
 
   .hero__media {
-    inset: 0 0 auto 0;
-    height: clamp(360px, 54svh, 460px);
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-height: 62svh;
+    height: auto;
   }
 
   .hero__img {
-    object-position: 72% 40%;
+    object-position: center center;
     animation: none;
   }
 
   .hero__scrim {
-    background:
-      linear-gradient(180deg, rgba(20, 19, 17, 0.38) 0%, rgba(20, 19, 17, 0.14) 36%, rgba(20, 19, 17, 0.72) 76%, var(--bg-dark) 100%);
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(20, 19, 17, 0) 86%, var(--bg-dark) 100%);
   }
 
   .hero__content {
-    padding-top: clamp(6.25rem, 19svh, 9rem);
+    padding-top: 1.35rem;
+    gap: 1.05rem;
   }
 
   .mobile-menu {
@@ -3176,8 +3187,18 @@ textarea.form-control {
     height: 38px;
   }
 
+  .hero__badge {
+    font-size: 0.72rem;
+    padding: 0.42rem 0.85rem;
+  }
+
   .hero__title {
-    font-size: clamp(2.05rem, 8.2vw, 2.55rem);
+    font-size: clamp(1.95rem, 7.2vw, 2.45rem);
+  }
+
+  .hero__subtitle {
+    margin-top: 0.75rem;
+    font-size: 0.94rem;
   }
 
   .distance-item {
