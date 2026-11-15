@@ -50,7 +50,7 @@
   --shadow-floating: 0 18px 42px -10px rgba(28, 27, 25, 0.22);
 
   /* Curve di Animazione */
-  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --nav-height: 82px;
 }
@@ -360,7 +360,22 @@ ol {
   align-items: center;
   color: var(--text-inverse);
   background: linear-gradient(180deg, rgba(28, 27, 25, 0.56) 0%, rgba(28, 27, 25, 0) 100%);
-  transition: background-color 0.45s var(--ease-editorial), color 0.35s var(--ease-editorial), border-color 0.35s var(--ease-editorial), backdrop-filter 0.45s var(--ease-editorial);
+  transition: background-color 0.45s var(--ease-editorial), color 0.35s var(--ease-editorial), border-color 0.35s var(--ease-editorial), backdrop-filter 0.45s var(--ease-editorial), box-shadow 0.45s var(--ease-editorial);
+}
+
+.site-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-terracotta), #D49B27);
+  transform-origin: left center;
+  transform: scaleX(var(--scroll-progress, 0));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease-editorial);
 }
 
 .site-header.is-scrolled {
@@ -370,6 +385,10 @@ ol {
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-subtle);
   box-shadow: 0 8px 30px -15px rgba(28, 27, 25, 0.1);
+}
+
+.site-header.is-scrolled::after {
+  opacity: 0.9;
 }
 
 .nav-inner {
@@ -625,7 +644,7 @@ ol {
   object-fit: cover;
   object-position: 62% 45%;
   transform-origin: center center;
-  animation: kenBurns 24s ease-in-out infinite alternate;
+  animation: kenBurns 28s ease-in-out infinite alternate;
   will-change: transform;
 }
 
@@ -634,7 +653,7 @@ ol {
     transform: scale(1) translate3d(0, 0, 0);
   }
   100% {
-    transform: scale(1.08) translate3d(-1%, -1%, 0);
+    transform: scale(1.06) translate3d(-0.8%, -0.8%, 0);
   }
 }
 
@@ -821,6 +840,22 @@ ol {
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-floating);
   padding: 0.9rem;
+  transform-origin: bottom left;
+}
+
+.hero-cal-popover:not([hidden]) {
+  animation: popoverIn 0.34s var(--ease-editorial);
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .hero-cal-popover[hidden] {
@@ -977,17 +1012,23 @@ ol {
   background-color: var(--bg-secondary);
   box-shadow: var(--shadow-medium);
   cursor: pointer;
+  transition: transform 0.65s var(--ease-editorial), box-shadow 0.65s var(--ease-editorial);
+}
+
+.collage-frame:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-floating);
 }
 
 .collage-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.85s var(--ease-editorial);
+  transition: transform 1.05s var(--ease-editorial);
 }
 
 .collage-frame:hover img {
-  transform: scale(1.04);
+  transform: scale(1.045);
 }
 
 .collage-frame--main {
@@ -1021,6 +1062,12 @@ ol {
   line-height: 1.25;
   white-space: normal;
   letter-spacing: 0.03em;
+  transition: background-color 0.35s var(--ease-editorial), transform 0.45s var(--ease-editorial);
+}
+
+.collage-frame:hover .collage-caption {
+  background: rgba(28, 27, 25, 0.86);
+  transform: translateY(-2px);
 }
 
 @media (min-width: 960px) {
@@ -1102,6 +1149,7 @@ ol {
 .room-tab:hover {
   border-color: var(--text-primary);
   color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .room-tab.is-active {
@@ -1118,7 +1166,7 @@ ol {
 /* Pannello Ambiente */
 .room-panel {
   display: none;
-  animation: roomFadeIn 0.55s var(--ease-editorial) forwards;
+  animation: roomFadeIn 0.42s var(--ease-editorial) forwards;
 }
 
 .room-panel.is-active {
@@ -1131,7 +1179,7 @@ ol {
 @keyframes roomFadeIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -1206,17 +1254,22 @@ ol {
   background-color: var(--bg-primary);
   cursor: zoom-in;
   box-shadow: var(--shadow-soft);
+  transition: transform 0.55s var(--ease-editorial), box-shadow 0.55s var(--ease-editorial);
+}
+
+.room-photo:hover {
+  box-shadow: var(--shadow-medium);
 }
 
 .room-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.75s var(--ease-editorial);
+  transition: transform 1.05s var(--ease-editorial);
 }
 
 .room-photo:hover img {
-  transform: scale(1.045);
+  transform: scale(1.05);
 }
 
 .room-photo__zoom {
@@ -1231,8 +1284,8 @@ ol {
   background: rgba(250, 248, 245, 0.9);
   color: var(--text-primary);
   opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.3s, transform 0.3s var(--ease-editorial);
+  transform: scale(0.85);
+  transition: opacity 0.3s, transform 0.35s var(--ease-editorial);
 }
 
 .room-photo:hover .room-photo__zoom {
@@ -1310,12 +1363,13 @@ ol {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  transition: transform 0.35s var(--ease-editorial), border-color 0.35s;
+  transition: transform 0.45s var(--ease-editorial), border-color 0.35s, box-shadow 0.45s var(--ease-editorial);
 }
 
 .amenity-card:hover {
   transform: translateY(-4px);
   border-color: var(--accent-terracotta);
+  box-shadow: var(--shadow-soft);
 }
 
 .amenity-card__icon {
@@ -1326,6 +1380,13 @@ ol {
   place-items: center;
   background-color: var(--bg-secondary);
   color: var(--accent-olive);
+  transition: transform 0.4s var(--ease-editorial), background-color 0.35s, color 0.35s;
+}
+
+.amenity-card:hover .amenity-card__icon {
+  transform: scale(1.06);
+  background-color: var(--accent-terracotta-soft);
+  color: var(--accent-terracotta);
 }
 
 .amenity-card__icon svg {
@@ -1367,6 +1428,13 @@ ol {
   border-radius: var(--radius-md);
   background: rgba(250, 248, 245, 0.06);
   border: 1px solid var(--border-inverse);
+  transition: transform 0.45s var(--ease-editorial), background-color 0.4s, border-color 0.4s;
+}
+
+.pillar-item:hover {
+  transform: translateY(-2px);
+  background: rgba(250, 248, 245, 0.09);
+  border-color: rgba(250, 248, 245, 0.32);
 }
 
 .pillar-item__num {
@@ -1550,7 +1618,9 @@ ol {
   width: 100%;
   background-color: var(--accent-olive);
   border-radius: inherit;
-  transition: width 0.5s var(--ease-editorial);
+  transform-origin: left center;
+  will-change: transform;
+  transition: width 0.6s var(--ease-editorial);
 }
 
 .ota-scores {
@@ -1571,11 +1641,13 @@ ol {
   background-color: var(--bg-primary);
   border: 1px solid var(--border-subtle);
   font-size: 0.86rem;
-  transition: border-color 0.25s;
+  transition: transform 0.35s var(--ease-editorial), border-color 0.25s, box-shadow 0.35s var(--ease-editorial);
 }
 
 .ota-badge:hover {
   border-color: var(--accent-terracotta);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
 .ota-badge strong {
@@ -1713,6 +1785,15 @@ ol {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+  transition: transform 0.45s var(--ease-editorial), box-shadow 0.45s var(--ease-editorial), border-color 0.35s;
+}
+
+@media (hover: hover) {
+  .review-card__inner:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--border-strong);
+  }
 }
 
 .review-card__top {
@@ -2132,12 +2213,13 @@ ol {
   border-radius: var(--radius-md);
   background-color: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
-  transition: border-color 0.3s, transform 0.3s var(--ease-editorial);
+  transition: border-color 0.35s, transform 0.35s var(--ease-editorial), box-shadow 0.35s var(--ease-editorial);
 }
 
 .contact-card:hover {
   border-color: var(--accent-terracotta);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
 .contact-card__icon {
@@ -2764,6 +2846,17 @@ textarea.form-control {
   visibility: visible;
 }
 
+.modal .lightbox__dialog,
+.modal .legal-dialog {
+  transform: translateY(16px) scale(0.985);
+  transition: transform 0.45s var(--ease-editorial);
+}
+
+.modal.is-open .lightbox__dialog,
+.modal.is-open .legal-dialog {
+  transform: translateY(0) scale(1);
+}
+
 .modal__backdrop {
   position: absolute;
   inset: 0;
@@ -3254,5 +3347,9 @@ textarea.form-control {
 
   .hero__img {
     animation: none !important;
+  }
+
+  .site-header::after {
+    display: none !important;
   }
 }

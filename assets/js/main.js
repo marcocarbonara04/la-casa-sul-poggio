@@ -36,6 +36,7 @@
     pets: 0
   };
 
+  let lenisInstance = null;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* --------------------------------------------------------------------------
@@ -265,6 +266,37 @@
     if (idx < 0 || idx >= total) return;
     state.activeRoomIdx = idx;
     renderRoomExplorer();
+
+    const activePanel = document.querySelector('.room-panel.is-active');
+    if (activePanel && !prefersReducedMotion && typeof window.gsap !== 'undefined') {
+      const textEls = activePanel.querySelectorAll(
+        '.room-info__tag, .room-info__title, .room-info__desc, .room-features li, .room-info__actions'
+      );
+      const photos = activePanel.querySelectorAll('.room-photo');
+      window.gsap.killTweensOf([...textEls, ...photos]);
+      if (textEls.length) {
+        window.gsap.from(textEls, {
+          y: 14,
+          opacity: 0,
+          duration: 0.55,
+          stagger: 0.045,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity'
+        });
+      }
+      if (photos.length) {
+        window.gsap.from(photos, {
+          y: 18,
+          scale: 0.975,
+          opacity: 0,
+          duration: 0.65,
+          stagger: 0.08,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity'
+        });
+      }
+    }
+
     if (window.ScrollTrigger) {
       window.ScrollTrigger.refresh();
     }
@@ -334,7 +366,7 @@
     return window.innerWidth >= 768 ? 2 : 1;
   }
 
-  function renderReviewsCarousel() {
+  function renderReviewsCarousel(animateCards = false) {
     const dict = getDict();
     const track = document.getElementById('reviews-track');
     const dotsWrap = document.getElementById('reviews-dots');
@@ -411,6 +443,26 @@
       .join('');
 
     updateReviewsPosition();
+
+    if (animateCards === true && !prefersReducedMotion && typeof window.gsap !== 'undefined') {
+      const allCards = Array.from(track.querySelectorAll('.review-card'));
+      const perView = getReviewsPerView();
+      const startIdx = state.activeReviewPage * perView;
+      const targetCards = state.reviewsExpanded
+        ? allCards
+        : allCards.slice(startIdx, startIdx + perView);
+      if (targetCards.length) {
+        window.gsap.killTweensOf(allCards);
+        window.gsap.from(targetCards, {
+          y: 18,
+          opacity: 0,
+          duration: 0.55,
+          stagger: Math.min(0.06, 0.36 / targetCards.length),
+          ease: 'power3.out',
+          clearProps: 'transform,opacity'
+        });
+      }
+    }
   }
 
   function updateReviewsPosition() {
@@ -1098,6 +1150,40 @@
     if (capEl) capEl.textContent = caption;
     if (countEl) countEl.textContent = `${state.lightboxIdx + 1} / ${items.length}`;
 
+    if (
+      document.getElementById('lightbox-modal')?.classList.contains('is-open') &&
+      !prefersReducedMotion &&
+      typeof window.gsap !== 'undefined' &&
+      imgEl
+    ) {
+      const targets = capEl ? [imgEl, capEl] : [imgEl];
+      window.gsap.killTweensOf(targets);
+      window.gsap.fromTo(
+        imgEl,
+        { opacity: 0.45, scale: 0.985 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.36,
+          ease: 'power2.out',
+          clearProps: 'transform,opacity'
+        }
+      );
+      if (capEl) {
+        window.gsap.fromTo(
+          capEl,
+          { opacity: 0, y: 6 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.32,
+            ease: 'power2.out',
+            clearProps: 'transform,opacity'
+          }
+        );
+      }
+    }
+
     if (thumbsEl) {
       thumbsEl.innerHTML = items
         .map(
@@ -1150,26 +1236,71 @@
   /* --------------------------------------------------------------------------
      GSAP + ScrollTrigger + Lenis Animations
      -------------------------------------------------------------------------- */
+  function animateNumericValue(el) {
+    if (!el || !window.gsap || !window.ScrollTrigger) return;
+    window.ScrollTrigger.create({
+      trigger: el,
+      start: 'top 86%',
+      once: true,
+      onEnter: () => {
+        const originalText = el.textContent.trim();
+        const match = originalText.match(/^([^\d]*)(\d+(?:[.,]\d+)?)(.*)$/);
+        if (!match) return;
+
+        const prefix = match[1] || '';
+        const numRaw = match[2];
+        const suffix = match[3] || '';
+        const usesComma = numRaw.includes(',');
+        const decimals = numRaw.includes(',') || numRaw.includes('.')
+          ? (numRaw.split(/[.,]/)[1] || '').length
+          : 0;
+        const targetVal = parseFloat(numRaw.replace(',', '.'));
+        if (!Number.isFinite(targetVal) || targetVal <= 0) return;
+
+        const langAtStart = state.lang;
+        const counter = { val: 0 };
+        const tween = window.gsap.to(counter, {
+          val: targetVal,
+          duration: 1.25,
+          ease: 'power2.out',
+          onUpdate: () => {
+            if (state.lang !== langAtStart) {
+              tween.kill();
+              return;
+            }
+            const fixed = counter.val.toFixed(decimals);
+            el.textContent = `${prefix}${usesComma ? fixed.replace('.', ',') : fixed}${suffix}`;
+          },
+          onComplete: () => {
+            if (state.lang === langAtStart) {
+              el.textContent = originalText;
+            }
+          }
+        });
+      }
+    });
+  }
+
   function initAnimations() {
     if (prefersReducedMotion) return;
 
-    let lenis = null;
     if (typeof window.Lenis === 'function') {
       try {
-        lenis = new window.Lenis({
-          duration: 1.15,
+        lenisInstance = new window.Lenis({
+          duration: 1.2,
           easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          smoothWheel: true
+          smoothWheel: true,
+          wheelMultiplier: 0.95
         });
       } catch (_) {
-        lenis = null;
+        lenisInstance = null;
       }
     }
 
     if (typeof window.gsap === 'undefined') {
-      if (lenis) {
+      if (lenisInstance) {
         function raf(time) {
-          lenis.raf(time);
+          lenisInstance.raf(time);
           requestAnimationFrame(raf);
         }
         requestAnimationFrame(raf);
@@ -1182,34 +1313,57 @@
       gsap.registerPlugin(window.ScrollTrigger);
     }
 
-    if (lenis && window.ScrollTrigger) {
-      lenis.on('scroll', window.ScrollTrigger.update);
+    if (lenisInstance && window.ScrollTrigger) {
+      lenisInstance.on('scroll', window.ScrollTrigger.update);
       gsap.ticker.add((time) => {
-        lenis.raf(time * 1000);
+        lenisInstance.raf(time * 1000);
       });
       gsap.ticker.lagSmoothing(0);
     }
 
-    // Hero Masked Entrance
-    const tlHero = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    // Hero Masked Editorial Entrance
+    const tlHero = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: 0.08 });
     tlHero
-      .from('.hero__badge', { y: 18, opacity: 0, duration: 0.7 })
-      .from('.hero__title .reveal-mask__inner', {
-        yPercent: 100,
+      .from('.hero__badge', {
+        y: 16,
         opacity: 0,
-        duration: 0.95
-      }, '-=0.45')
-      .from('.hero__subtitle', { y: 20, opacity: 0, duration: 0.75 }, '-=0.55')
-      .from('.booking-bar', { y: 24, opacity: 0, duration: 0.8, clearProps: 'transform,opacity' }, '-=0.55')
-      .from('.hero__trust-strip', { y: 14, opacity: 0, duration: 0.65 }, '-=0.5');
+        duration: 0.75,
+        clearProps: 'transform,opacity'
+      })
+      .from('.hero__title .reveal-mask__inner', {
+        yPercent: 108,
+        duration: 1.05,
+        clearProps: 'transform'
+      }, '-=0.5')
+      .from('.hero__subtitle', {
+        y: 18,
+        opacity: 0,
+        duration: 0.85,
+        clearProps: 'transform,opacity'
+      }, '-=0.65')
+      .from('.booking-bar', {
+        y: 24,
+        opacity: 0,
+        duration: 0.9,
+        clearProps: 'transform,opacity'
+      }, '-=0.6')
+      .from('.hero__trust-item', {
+        y: 12,
+        opacity: 0,
+        duration: 0.65,
+        stagger: 0.08,
+        clearProps: 'transform,opacity'
+      }, '-=0.55');
 
-    // ScrollTrigger Sections Staggered Reveal
+    // ScrollTrigger Choreography
     if (window.ScrollTrigger) {
       gsap.utils.toArray('.gsap-reveal-group').forEach((group) => {
-        const items = group.querySelectorAll('.gsap-reveal');
+        const items = group.querySelectorAll(
+          '.gsap-reveal:not(.story-collage):not(#amenities-grid):not(#rating-bars):not(#distances-list)'
+        );
         if (!items.length) return;
         gsap.from(items, {
-          y: 28,
+          y: 26,
           opacity: 0,
           duration: 0.85,
           stagger: 0.1,
@@ -1223,19 +1377,133 @@
         });
       });
 
-      // Parallax Images inside overflow:hidden containers
+      // Collage Architectural Curtain Reveal
+      const collageFrames = gsap.utils.toArray('.story-collage .collage-frame');
+      if (collageFrames.length) {
+        gsap.from(collageFrames, {
+          clipPath: 'inset(14% 0% 0% 0% round 14px)',
+          y: 24,
+          opacity: 0,
+          duration: 1.05,
+          stagger: 0.14,
+          ease: 'expo.out',
+          clearProps: 'transform,opacity,clipPath',
+          scrollTrigger: {
+            trigger: '.story-collage',
+            start: 'top 84%',
+            once: true
+          }
+        });
+      }
+
+      // Numeric Metric Counters (#dimora metrics + aggregate rating)
+      gsap.utils.toArray('#dimora .metric-card__value, .rating-highlight__num').forEach((el) => {
+        animateNumericValue(el);
+      });
+
+      // Amenities Staggered Grid Cascade
+      const amenityCards = gsap.utils.toArray('#amenities-grid .amenity-card');
+      if (amenityCards.length) {
+        gsap.from(amenityCards, {
+          y: 20,
+          scale: 0.97,
+          opacity: 0,
+          duration: 0.72,
+          stagger: 0.07,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+          scrollTrigger: {
+            trigger: '#amenities-grid',
+            start: 'top 85%',
+            once: true
+          }
+        });
+      }
+
+      // Direct Pillars & Comparison Rows Stagger
+      const pillarItems = gsap.utils.toArray('.direct-pillars .pillar-item');
+      if (pillarItems.length) {
+        gsap.from(pillarItems, {
+          x: -16,
+          y: 10,
+          opacity: 0,
+          duration: 0.72,
+          stagger: 0.11,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+          scrollTrigger: {
+            trigger: '.direct-pillars',
+            start: 'top 85%',
+            once: true
+          }
+        });
+      }
+
+      const compareRows = gsap.utils.toArray('.compare-rows .compare-row');
+      if (compareRows.length) {
+        gsap.from(compareRows, {
+          y: 14,
+          opacity: 0,
+          duration: 0.62,
+          stagger: 0.075,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+          scrollTrigger: {
+            trigger: '.compare-rows',
+            start: 'top 85%',
+            once: true
+          }
+        });
+      }
+
+      // Rating Bars Horizontal Draw-in
+      const ratingBarFills = gsap.utils.toArray('#rating-bars .rating-bar__fill');
+      if (ratingBarFills.length) {
+        gsap.from(ratingBarFills, {
+          scaleX: 0,
+          duration: 0.95,
+          stagger: 0.08,
+          ease: 'expo.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '#rating-bars',
+            start: 'top 85%',
+            once: true
+          }
+        });
+      }
+
+      // Location Distance Cards Cascade
+      const distanceItems = gsap.utils.toArray('#distances-list .distance-item');
+      if (distanceItems.length) {
+        gsap.from(distanceItems, {
+          x: -16,
+          opacity: 0,
+          duration: 0.65,
+          stagger: 0.075,
+          ease: 'power3.out',
+          clearProps: 'transform,opacity',
+          scrollTrigger: {
+            trigger: '#distances-list',
+            start: 'top 85%',
+            once: true
+          }
+        });
+      }
+
+      // Smooth Editorial Parallax inside overflow:hidden frames
       gsap.utils.toArray('.parallax-img').forEach((img) => {
         gsap.fromTo(
           img,
-          { yPercent: -6 },
+          { yPercent: -5 },
           {
-            yPercent: 6,
+            yPercent: 5,
             ease: 'none',
             scrollTrigger: {
               trigger: img.parentElement,
               start: 'top bottom',
               end: 'bottom top',
-              scrub: true
+              scrub: 0.65
             }
           }
         );
@@ -1247,16 +1515,48 @@
      Event Wiring & Boot
      -------------------------------------------------------------------------- */
   function bindEvents() {
-    // Sticky Navbar on scroll
+    // Sticky Navbar & Reading Progress Hairline on scroll
     const header = document.getElementById('site-header');
     const onScroll = () => {
-      if (header) header.classList.toggle('is-scrolled', window.scrollY > 60);
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      if (header) {
+        header.classList.toggle('is-scrolled', scrollY > 60);
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+        header.style.setProperty('--scroll-progress', progress.toFixed(4));
+      }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    // Language switch buttons
+    // Language switch, hash anchor smooth scrolling & delegated UI clicks
     document.addEventListener('click', (e) => {
+      const anchorLink = e.target.closest('a[href^="#"]');
+      if (anchorLink) {
+        const href = anchorLink.getAttribute('href');
+        if (href && href.length > 1) {
+          const targetEl = href === '#top' ? document.body : document.querySelector(href);
+          if (targetEl) {
+            e.preventDefault();
+            setMobileMenu(false);
+            if (lenisInstance && !prefersReducedMotion) {
+              lenisInstance.scrollTo(href === '#top' ? 0 : targetEl, {
+                offset: href === '#top' ? 0 : -76,
+                duration: 1.15
+              });
+            } else if (href === '#top') {
+              window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+            } else {
+              targetEl.scrollIntoView({
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
+                block: 'start'
+              });
+            }
+            return;
+          }
+        }
+      }
+
       const langBtn = e.target.closest('.lang-switch__btn');
       if (langBtn) {
         setLanguage(langBtn.getAttribute('data-lang'));
@@ -1507,13 +1807,13 @@
       btn.addEventListener('click', () => {
         state.reviewFilter = btn.getAttribute('data-rev-filter') || 'all';
         state.activeReviewPage = 0;
-        renderReviewsCarousel();
+        renderReviewsCarousel(true);
       });
     });
 
     document.getElementById('btn-toggle-reviews-view')?.addEventListener('click', () => {
       state.reviewsExpanded = !state.reviewsExpanded;
-      renderReviewsCarousel();
+      renderReviewsCarousel(true);
       if (window.ScrollTrigger) {
         window.ScrollTrigger.refresh();
       }
