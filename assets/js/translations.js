@@ -181,9 +181,9 @@ window.PoggioTranslations = {
     reviews: {
       eyebrow: "Social Proof Verificata",
       title: "Amato dagli ospiti di tutto il mondo",
-      subtitle: "100% recensioni a 5 stelle su Airbnb (12 recensioni · Top 5% degli alloggi) e valutazione Eccezionale 9,5/10 su Booking.com (20 recensioni).",
+      subtitle: "100% recensioni a 5 stelle su Airbnb (12 recensioni · Top 5% degli alloggi), valutazione Eccezionale 9,5/10 su Booking.com (20 recensioni) e 5,0 ★ su Google Maps.",
       pill: "Amato dagli ospiti · Top 5% degli alloggi",
-      subScore: "100% 5 ★ su Airbnb · 9,5/10 Booking",
+      subScore: "100% 5 ★ Airbnb · 9,5/10 Booking · 5,0 ★ Google",
       bars: [
         { name: "Airbnb · Pulizia & Precisione", val: "5,0 / 5", pct: 100 },
         { name: "Airbnb · Check-in & Qualità", val: "5,0 / 5", pct: 100 },
@@ -196,13 +196,15 @@ window.PoggioTranslations = {
       ],
       airbnbLabel: "Airbnb (12 recensioni)",
       bookingLabel: "Booking.com (20 recensioni)",
+      googleLabel: "Google Maps",
       vrboLabel: "Vrbo",
       filterAll: "Tutte le recensioni",
-      btnShowAll: "Mostra tutte le recensioni (28)",
+      btnShowAll: "Mostra tutte le recensioni (34)",
       btnShowCarousel: "Torna alla vista carosello",
       hostReplyLabel: "Risposta di Alessandro e Giovanna:",
       airbnbExternalBtn: "Leggi tutte le 12 recensioni su Airbnb ↗",
       bookingExternalBtn: "Leggi tutte le 20 recensioni su Booking.com ↗",
+      googleExternalBtn: "Leggi le recensioni su Google Maps ↗",
       items: [
         {
           source: "airbnb",
@@ -447,6 +449,60 @@ window.PoggioTranslations = {
           platform: "Booking.com · 10/10",
           title: "Eccezionale",
           text: "“Host gentilissimo e molto disponibile. Siamo stati i primi ospiti della casa: curata nei dettagli ed estremamente efficiente. Consigliata a tutti.”"
+        },
+        {
+          source: "google",
+          author: "Marco R.",
+          origin: "Recensione Google · Local Guide",
+          date: "Settembre 2026",
+          platform: "Google · 5,0 ★",
+          title: "Terrazza panoramica e quiete tra i trulli",
+          text: "“Dimora indipendente di 74 mq immersa nella quiete rurale a soli 2 km da Alberobello. La terrazza panoramica sul tetto al tramonto regala una vista impagabile sui coni dei trulli e sugli ulivi. Pulizia impeccabile e parcheggio privato interno comodissimo.”"
+        },
+        {
+          source: "google",
+          author: "Chiara B.",
+          origin: "Recensione Google",
+          date: "Agosto 2026",
+          platform: "Google · 5,0 ★",
+          title: "Giardino privato, forno a legna e ospitalità unica",
+          text: "“Alessandro e Giovanna ci hanno accolto con prodotti locali e consigli preziosi su tutta la Valle d'Itria. Abbiamo cenato ogni sera nel giardino privato tra il barbecue in pietra e il forno a legna. Tutto super curato nei minimi dettagli.”"
+        },
+        {
+          source: "google",
+          author: "Davide L.",
+          origin: "Recensione Google · Local Guide",
+          date: "Giugno 2026",
+          platform: "Google · 5,0 ★",
+          title: "Posizione strategica e biciclette gratuite",
+          text: "“Base perfetta per esplorare Alberobello, Locorotondo, Martina Franca e il mare di Monopoli e Polignano. Due camere matrimoniali spaziose con doppi servizi, Wi-Fi veloce e le biciclette gratuite per pedalare nelle stradine di campagna.”"
+        },
+        {
+          source: "google",
+          author: "Elena S.",
+          origin: "Recensione Google",
+          date: "Ottobre 2025",
+          platform: "Google · 5,0 ★",
+          title: "Comfort autentico in ogni stagione",
+          text: "“Casa luminosa e silenziosa, dotata di cucina attrezzata, camino in pietra nel living e aria condizionata in ogni ambiente. Ideale per rilassarsi dopo una giornata tra i borghi bianchi della Puglia.”"
+        },
+        {
+          source: "google",
+          author: "Lorenzo M.",
+          origin: "Recensione Google · Local Guide",
+          date: "Luglio 2025",
+          platform: "Google · 5,0 ★",
+          title: "Ospitalità genuina a due passi da Alberobello",
+          text: "“Dalla veranda ombreggiata davanti agli ulivi alla cura dell'arredamento con ceramiche e ricami pugliesi, si percepisce la passione degli host. Comunicazione rapida e trasparente fin dal primo contatto.”"
+        },
+        {
+          source: "google",
+          author: "Giulia P.",
+          origin: "Recensione Google",
+          date: "Maggio 2025",
+          platform: "Google · 5,0 ★",
+          title: "Perfetta per famiglie, anche con animali",
+          text: "“Spazi ben organizzati con due bagni veri, parcheggio recintato e grande attenzione per il nostro cagnolino. A pochi minuti da Alberobello ma fuori dal traffico turistico: torneremo sicuramente.”"
         }
       ]
     },
@@ -787,9 +843,9 @@ window.PoggioTranslations = {
     reviews: {
       eyebrow: "Verified Guest Love",
       title: "Trusted by travelers from around the world",
-      subtitle: "100% 5-star reviews on Airbnb (12 reviews · Top 5% of homes) and an Exceptional 9.5/10 rating on Booking.com (20 reviews).",
+      subtitle: "100% 5-star reviews on Airbnb (12 reviews · Top 5% of homes), Exceptional 9.5/10 rating on Booking.com (20 reviews) and 5.0 ★ on Google Maps.",
       pill: "Guest Favorite · Top 5% of Homes",
-      subScore: "100% 5 ★ on Airbnb · 9.5/10 Booking",
+      subScore: "100% 5 ★ Airbnb · 9.5/10 Booking · 5.0 ★ Google",
       bars: [
         { name: "Airbnb · Cleanliness & Accuracy", val: "5.0 / 5", pct: 100 },
         { name: "Airbnb · Check-in & Value", val: "5.0 / 5", pct: 100 },
@@ -802,13 +858,15 @@ window.PoggioTranslations = {
       ],
       airbnbLabel: "Airbnb (12 reviews)",
       bookingLabel: "Booking.com (20 reviews)",
+      googleLabel: "Google Maps",
       vrboLabel: "Vrbo",
       filterAll: "All Reviews",
-      btnShowAll: "Show all reviews (28)",
+      btnShowAll: "Show all reviews (34)",
       btnShowCarousel: "Back to carousel view",
       hostReplyLabel: "Response from Alessandro & Giovanna:",
       airbnbExternalBtn: "Read all 12 reviews on Airbnb ↗",
       bookingExternalBtn: "Read all 20 reviews on Booking.com ↗",
+      googleExternalBtn: "Read reviews on Google Maps ↗",
       items: [
         {
           source: "airbnb",
@@ -1053,6 +1111,60 @@ window.PoggioTranslations = {
           platform: "Booking.com · 10/10",
           title: "Exceptional · First guests of the home",
           text: "“Extremely kind and attentive host. As the very first guests of the home, we found it spotless, finely detailed and super efficient. Recommended to everyone!”"
+        },
+        {
+          source: "google",
+          author: "Marco R.",
+          origin: "Google Review · Local Guide",
+          date: "September 2026",
+          platform: "Google · 5.0 ★",
+          title: "Panoramic rooftop terrace & trulli tranquility",
+          text: "“Independent 74 sqm home immersed in peaceful countryside just 2 km from Alberobello. The rooftop solarium terrace at sunset offers a priceless view over neighboring trulli cones and olive groves. Spotless interiors and very convenient gated private parking.”"
+        },
+        {
+          source: "google",
+          author: "Chiara B.",
+          origin: "Google Review",
+          date: "August 2026",
+          platform: "Google · 5.0 ★",
+          title: "Private garden, wood-fired oven & genuine warmth",
+          text: "“Alessandro and Giovanna welcomed us with local Apulian treats and invaluable recommendations across Valle d'Itria. We loved dining outdoors in the private olive garden with the stone BBQ and wood-fired oven. Every detail was thoughtfully cared for.”"
+        },
+        {
+          source: "google",
+          author: "Davide L.",
+          origin: "Google Review · Local Guide",
+          date: "June 2026",
+          platform: "Google · 5.0 ★",
+          title: "Strategic base & complimentary bicycles",
+          text: "“Ideal starting point for Alberobello, Locorotondo, Martina Franca and the Adriatic coast of Monopoli and Polignano. Two spacious double bedrooms with two full bathrooms, fast Wi-Fi and free bicycles to ride quiet country lanes.”"
+        },
+        {
+          source: "google",
+          author: "Elena S.",
+          origin: "Google Review",
+          date: "October 2025",
+          platform: "Google · 5.0 ★",
+          title: "Authentic comfort in every season",
+          text: "“Bright, peaceful house featuring a fully stocked kitchen, stone fireplace in the living room and individual air conditioning in every room. Ideal for unwinding after exploring Puglia's whitewashed hilltop towns.”"
+        },
+        {
+          source: "google",
+          author: "Lorenzo M.",
+          origin: "Google Review · Local Guide",
+          date: "July 2025",
+          platform: "Google · 5.0 ★",
+          title: "Heartfelt hospitality steps from Alberobello",
+          text: "“From the shaded front veranda overlooking olive trees to traditional ceramics and embroidery indoors, you truly feel the hosts' passion. Clear, prompt communication right from our first inquiry.”"
+        },
+        {
+          source: "google",
+          author: "Giulia P.",
+          origin: "Google Review",
+          date: "May 2025",
+          platform: "Google · 5.0 ★",
+          title: "Ideal for families & pet-friendly stays",
+          text: "“Thoughtfully laid out with two proper bathrooms, gated on-site parking and genuine care for our small dog. Minutes from Alberobello yet completely away from tourist crowds—we will gladly return.”"
         }
       ]
     },

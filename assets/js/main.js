@@ -357,7 +357,7 @@
   function getFilteredReviews() {
     const dict = getDict();
     const items = dict.reviews?.items || [];
-    if (state.reviewFilter === 'airbnb' || state.reviewFilter === 'booking') {
+    if (state.reviewFilter === 'airbnb' || state.reviewFilter === 'booking' || state.reviewFilter === 'google') {
       return items.filter((rev) => rev.source === state.reviewFilter);
     }
     return items;
@@ -415,7 +415,7 @@
 
     track.innerHTML = items
       .map((rev) => {
-        const sourceClass = rev.source === 'booking' ? 'booking' : 'airbnb';
+        const sourceClass = rev.source === 'booking' ? 'booking' : rev.source === 'google' ? 'google' : 'airbnb';
         const scoreMatch = String(rev.platform || '').match(/(\d+(?:[.,]\d+)?)\s*\/\s*10/);
         const scoreNum = scoreMatch ? parseFloat(scoreMatch[1].replace(',', '.')) : 10;
         const starsText = rev.source === 'booking' && scoreNum < 9 ? '★★★★☆' : '★★★★★';
