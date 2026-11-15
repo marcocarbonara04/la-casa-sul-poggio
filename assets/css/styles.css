@@ -657,9 +657,10 @@ ol {
 .hero__badge {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
   align-self: flex-start;
+  max-width: 100%;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-pill);
   background: rgba(250, 248, 245, 0.13);
@@ -669,10 +670,16 @@ ol {
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.hero__badge > span:not(.hero__badge-star) {
+  min-width: 0;
 }
 
 .hero__badge-star {
   color: #F4C150;
+  flex-shrink: 0;
 }
 
 .hero__headline-wrap {
@@ -3009,6 +3016,12 @@ textarea.form-control {
   .hero__content {
     padding-top: 1.35rem;
     gap: 1.05rem;
+  }
+
+  .hero__badge {
+    align-items: baseline;
+    gap: 0.42rem;
+    border-radius: 16px;
   }
 
   .mobile-menu {
