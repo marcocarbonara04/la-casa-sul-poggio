@@ -2715,6 +2715,15 @@ textarea.form-control {
   border: 1px solid rgba(39, 94, 55, 0.25);
 }
 
+.form-feedback__link {
+  display: inline-block;
+  margin-left: 0.45rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: inherit;
+}
+
 .form-actions {
   display: grid;
   grid-template-columns: 1fr;

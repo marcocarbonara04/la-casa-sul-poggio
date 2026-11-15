@@ -1019,8 +1019,8 @@
     const name = (document.getElementById('book-name')?.value || '').trim();
     const email = (document.getElementById('book-email')?.value || '').trim();
     const phone = (document.getElementById('book-phone')?.value || '').trim();
-    const checkin = state.checkin || document.getElementById('book-checkin')?.value || '';
-    const checkout = state.checkout || document.getElementById('book-checkout')?.value || '';
+    const checkin = state.checkin || document.getElementById('book-checkin')?.value || document.getElementById('hero-checkin')?.value || '';
+    const checkout = state.checkout || document.getElementById('book-checkout')?.value || document.getElementById('hero-checkout')?.value || '';
     const notes = (document.getElementById('book-notes')?.value || '').trim();
 
     const extras = [];
@@ -1099,11 +1099,76 @@
     return { valid: true, message, subject };
   }
 
-  function showFormFeedback(type, text) {
+  function isMobileDevice() {
+    const ua = navigator.userAgent || '';
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) ||
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 1024)
+    );
+  }
+
+  function buildWhatsAppUrl(text) {
+    const base = isMobileDevice()
+      ? `https://api.whatsapp.com/send?phone=${CONFIG.whatsappPhone}`
+      : `https://wa.me/${CONFIG.whatsappPhone}`;
+    if (!text) return base;
+    const sep = base.includes('?') ? '&' : '?';
+    return `${base}${sep}text=${encodeURIComponent(text)}`;
+  }
+
+  function openWhatsApp(text) {
+    const waUrl = buildWhatsAppUrl(text);
+    if (isMobileDevice()) {
+      // Same-tab top-level navigation avoids mobile popup blockers and triggers native app handoff directly.
+      window.location.href = waUrl;
+      return waUrl;
+    }
+
+    const popup = typeof window.open === 'function' ? window.open(waUrl, '_blank') : null;
+    if (popup) {
+      try {
+        popup.opener = null;
+      } catch (_) {
+        // Ignore cross-origin opener restriction
+      }
+    } else {
+      window.location.href = waUrl;
+    }
+    return waUrl;
+  }
+
+  function updateMobileWhatsAppLinks() {
+    if (!isMobileDevice()) return;
+    document.querySelectorAll('a[href*="wa.me/"]').forEach((link) => {
+      try {
+        const parsed = new URL(link.getAttribute('href'), window.location.href);
+        const rawText = parsed.searchParams.get('text');
+        link.setAttribute('href', buildWhatsAppUrl(rawText || ''));
+        link.removeAttribute('target');
+      } catch (_) {
+        link.setAttribute('href', `https://api.whatsapp.com/send?phone=${CONFIG.whatsappPhone}`);
+        link.removeAttribute('target');
+      }
+    });
+  }
+
+  function showFormFeedback(type, text, actionUrl = '') {
     const el = document.getElementById('form-feedback');
     if (!el) return;
+    const dict = getDict();
     el.className = `form-feedback ${type === 'error' ? 'is-error' : 'is-success'}`;
     el.textContent = text;
+    if (actionUrl && typeof document.createElement === 'function' && typeof el.appendChild === 'function') {
+      const link = document.createElement('a');
+      link.className = 'form-feedback__link';
+      link.href = actionUrl;
+      if (!isMobileDevice()) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+      link.textContent = dict.booking?.openWaManual || 'Apri WhatsApp';
+      el.appendChild(link);
+    }
   }
 
   /* --------------------------------------------------------------------------
@@ -1515,6 +1580,8 @@
      Event Wiring & Boot
      -------------------------------------------------------------------------- */
   function bindEvents() {
+    updateMobileWhatsAppLinks();
+
     // Sticky Navbar & Reading Progress Hairline on scroll
     const header = document.getElementById('site-header');
     const onScroll = () => {
@@ -1769,16 +1836,27 @@
     document.getElementById('hero-booking-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       setHeroCalendarOpen(false);
+      const heroAdultsEl = document.getElementById('hero-adults');
+      const heroChildrenEl = document.getElementById('hero-children');
+      const heroPetsEl = document.getElementById('hero-pets');
+      if (heroAdultsEl || heroChildrenEl || heroPetsEl) {
+        if (heroAdultsEl) state.adults = parseInt(heroAdultsEl.value, 10) || state.adults;
+        if (heroChildrenEl) state.children = parseInt(heroChildrenEl.value, 10) || 0;
+        if (heroPetsEl) state.pets = parseInt(heroPetsEl.value, 10) || 0;
+        syncPartyState('hero');
+      }
+
       const dict = getDict();
       const payload = collectBookingPayload('whatsapp');
       if (!payload.valid) {
         setHeroCalendarOpen(true);
+        const heroHint = document.querySelector('#hero-cal-popover [data-cal-hint]');
+        if (heroHint) heroHint.textContent = payload.error;
         showFormFeedback('error', payload.error);
         return;
       }
-      showFormFeedback('success', dict.booking.successWa);
-      const waUrl = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(payload.message)}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      const waUrl = openWhatsApp(payload.message);
+      showFormFeedback('success', dict.booking.successWa, waUrl);
     });
 
     // Direct Booking Buttons (WhatsApp, Email, Copy)
@@ -1793,9 +1871,8 @@
         highlightBookingCalendar();
         return;
       }
-      showFormFeedback('success', dict.booking.successWa);
-      const waUrl = `https://wa.me/${CONFIG.whatsappPhone}?text=${encodeURIComponent(payload.message)}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      const waUrl = openWhatsApp(payload.message);
+      showFormFeedback('success', dict.booking.successWa, waUrl);
     });
 
     document.getElementById('btn-send-email')?.addEventListener('click', () => {

@@ -560,6 +560,7 @@ window.PoggioTranslations = {
       errEmailRequired: "Per inviare via Email inserisci il tuo nome, un'email valida e le date di Check-in / Check-out.",
       errRequired: "Seleziona date valide di Check-in e Check-out (per Email sono richiesti anche nome ed email).",
       successWa: "Apertura di WhatsApp (+39 377 270 5293) con il tuo preventivo precompilato...",
+      openWaManual: "Apri WhatsApp",
       successMail: "Apertura del client Email con il riepilogo precompilato..."
     },
     footer: {
@@ -1161,6 +1162,7 @@ window.PoggioTranslations = {
       errEmailRequired: "To send via Email, please enter your name, a valid email address and valid Check-in / Check-out dates.",
       errRequired: "Please enter valid Check-in and Check-out dates (name and email are also required for Email inquiries).",
       successWa: "Opening WhatsApp (+39 377 270 5293) with your pre-filled quote request...",
+      openWaManual: "Open WhatsApp",
       successMail: "Opening your email client with the pre-filled inquiry..."
     },
     footer: {
