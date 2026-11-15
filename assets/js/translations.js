@@ -559,6 +559,10 @@ window.PoggioTranslations = {
       errMinStay: "Il soggiorno minimo è di 2 notti. Seleziona una data di Check-out almeno 2 notti dopo il Check-in.",
       errEmailRequired: "Per inviare via Email inserisci il tuo nome, un'email valida e le date di Check-in / Check-out.",
       errRequired: "Seleziona date valide di Check-in e Check-out (per Email sono richiesti anche nome ed email).",
+      optionalToggle: "Aggiungi dati di contatto, extra e anteprima messaggio (opzionale)",
+      calSelIn: "Check-in",
+      calSelOut: "Check-out",
+      calSelStay: "Soggiorno",
       successWa: "Apertura di WhatsApp (+39 377 270 5293) con il tuo preventivo precompilato...",
       openWaManual: "Apri WhatsApp",
       successMail: "Apertura del client Email con il riepilogo precompilato..."
@@ -1161,6 +1165,10 @@ window.PoggioTranslations = {
       errMinStay: "Minimum stay is 2 nights. Please select a Check-out date at least 2 nights after Check-in.",
       errEmailRequired: "To send via Email, please enter your name, a valid email address and valid Check-in / Check-out dates.",
       errRequired: "Please enter valid Check-in and Check-out dates (name and email are also required for Email inquiries).",
+      optionalToggle: "Add contact details, special requests & message preview (optional)",
+      calSelIn: "Check-in",
+      calSelOut: "Check-out",
+      calSelStay: "Stay",
       successWa: "Opening WhatsApp (+39 377 270 5293) with your pre-filled quote request...",
       openWaManual: "Open WhatsApp",
       successMail: "Opening your email client with the pre-filled inquiry..."

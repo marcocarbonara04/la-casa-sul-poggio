@@ -862,6 +862,15 @@ ol {
   display: none;
 }
 
+.hero-cal-popover__handle {
+  display: none;
+  width: 38px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background-color: var(--border-strong, rgba(28, 27, 25, 0.22));
+  margin: 0.1rem auto 0.65rem;
+}
+
 .hero-cal-popover__footer {
   display: flex;
   flex-wrap: wrap;
@@ -1309,6 +1318,30 @@ ol {
 .ratio-4-3 { aspect-ratio: 4 / 3; }
 .ratio-3-4 { aspect-ratio: 3 / 4; }
 .ratio-3-2 { aspect-ratio: 3 / 2; }
+
+@media (max-width: 699px) {
+  .room-gallery {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0.25rem;
+    padding-bottom: 0.45rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .room-gallery::-webkit-scrollbar {
+    display: none;
+  }
+
+  .room-gallery .room-photo {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
+    aspect-ratio: 4 / 3;
+  }
+}
 
 @media (min-width: 700px) {
   .room-gallery {
@@ -2037,6 +2070,35 @@ ol {
   color: var(--text-inverse);
 }
 
+@media (max-width: 959px) {
+  .distances-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .distances-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .distance-item {
+    flex: 0 0 245px;
+    width: auto;
+    padding: 0.9rem 1.05rem;
+    scroll-snap-align: start;
+  }
+
+  .distance-item:hover,
+  .distance-item.is-active {
+    transform: translateY(-2px);
+  }
+}
+
 /* Mappa Interattiva Google Maps */
 .map-card {
   background-color: var(--bg-elevated);
@@ -2385,6 +2447,45 @@ textarea.form-control {
   box-shadow: 0 0 0 4px rgba(184, 93, 59, 0.18), var(--shadow-soft);
 }
 
+.cal-selected-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.cal-selected-bar__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.cal-selected-bar__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-olive);
+}
+
+.cal-selected-bar__val {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cal-selected-bar__item--nights .cal-selected-bar__val {
+  color: var(--accent-terracotta);
+}
+
 .hero-cal-popover .cal-widget {
   border: none;
   padding: 0.25rem;
@@ -2661,6 +2762,51 @@ textarea.form-control {
   width: 100%;
 }
 
+.booking-optional-accordion {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  padding: 0.25rem 0.95rem;
+  transition: border-color 0.3s var(--ease-editorial);
+}
+
+.booking-optional-accordion[open] {
+  padding-bottom: 1rem;
+  border-color: var(--accent-terracotta);
+}
+
+.booking-optional-accordion__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.booking-optional-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.booking-optional-accordion__chevron {
+  flex-shrink: 0;
+  color: var(--accent-terracotta);
+  transition: transform 0.3s var(--ease-editorial);
+}
+
+.booking-optional-accordion[open] .booking-optional-accordion__chevron {
+  transform: rotate(180deg);
+}
+
+.booking-optional-accordion__body {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
 .wa-preview-wrap {
   display: flex;
   flex-direction: column;
@@ -2742,6 +2888,16 @@ textarea.form-control {
 
   .form-actions {
     grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+@media (max-width: 959px) {
+  .booking-form-card {
+    order: 1;
+  }
+
+  .contact-panel {
+    order: 2;
   }
 }
 
@@ -3074,6 +3230,30 @@ textarea.form-control {
   font-weight: 600;
 }
 
+.mobile-sticky-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.btn--wa-sticky {
+  background-color: var(--accent-olive);
+  color: var(--text-inverse);
+  border: 1px solid var(--accent-olive);
+}
+
+.btn--wa-sticky:hover,
+.btn--wa-sticky:focus-visible {
+  background-color: #3D4836;
+  border-color: #3D4836;
+  color: var(--text-inverse);
+}
+
+.btn--wa-sticky svg {
+  flex-shrink: 0;
+}
+
 @media (min-width: 768px) {
   .mobile-sticky-bar {
     display: none;
@@ -3162,13 +3342,41 @@ textarea.form-control {
     width: auto;
     max-width: none;
     max-height: 75svh;
+    overflow-y: auto;
     z-index: 1200;
+  }
+
+  .hero-cal-popover__handle {
+    display: block;
+  }
+
+  .form-group--dates-manual {
+    display: none;
+  }
+
+  .cal-selected-bar {
+    gap: 0.35rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .cal-selected-bar__val {
+    font-size: 0.8rem;
   }
 
   .party-stepper__btn,
   .cal-nav-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .mobile-sticky-bar {
+    gap: 0.5rem;
+    padding: 0.65rem 0.75rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-sticky-bar__actions .btn--sm {
+    padding: 0.5rem 0.72rem;
+    font-size: 0.76rem;
   }
 
   .mobile-sticky-bar__meta {
@@ -3183,8 +3391,7 @@ textarea.form-control {
   }
 
   .whatsapp-fab {
-    right: 0.9rem;
-    bottom: calc(4.85rem + env(safe-area-inset-bottom, 0px));
+    display: none;
   }
 }
 

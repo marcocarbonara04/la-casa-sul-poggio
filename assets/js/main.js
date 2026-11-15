@@ -65,6 +65,22 @@
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
 
+  function formatDateShort(iso) {
+    if (!iso) return '';
+    const parts = iso.split('-');
+    if (parts.length !== 3) return iso;
+    return `${parts[2]}/${parts[1]}`;
+  }
+
+  function scrollContainerToCenter(container, itemEl) {
+    if (!container || !itemEl || typeof container.scrollTo !== 'function') return;
+    const targetLeft = itemEl.offsetLeft - (container.clientWidth - itemEl.offsetWidth) / 2;
+    container.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth'
+    });
+  }
+
   function computeNights(checkin, checkout) {
     if (!checkin || !checkout) return 0;
     const d1 = new Date(`${checkin}T00:00:00`);
@@ -266,6 +282,9 @@
     if (idx < 0 || idx >= total) return;
     state.activeRoomIdx = idx;
     renderRoomExplorer();
+
+    const tabsWrap = document.getElementById('room-tabs');
+    scrollContainerToCenter(tabsWrap, tabsWrap?.querySelector('.room-tab.is-active'));
 
     const activePanel = document.querySelector('.room-panel.is-active');
     if (activePanel && !prefersReducedMotion && typeof window.gsap !== 'undefined') {
@@ -563,18 +582,33 @@
       minOutISO = formatDateISO(dIn);
     }
 
-    ['hero-checkin', 'book-checkin'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.min = todayISO;
-      el.value = state.checkin || '';
-    });
+    const useReadableHero = isMobileDevice();
+    const fields = [
+      { id: 'hero-checkin', val: state.checkin, min: todayISO, isHero: true },
+      { id: 'book-checkin', val: state.checkin, min: todayISO, isHero: false },
+      { id: 'hero-checkout', val: state.checkout, min: minOutISO, isHero: true },
+      { id: 'book-checkout', val: state.checkout, min: minOutISO, isHero: false }
+    ];
 
-    ['hero-checkout', 'book-checkout'].forEach((id) => {
+    fields.forEach(({ id, val, min, isHero }) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.min = minOutISO;
-      el.value = state.checkout || '';
+      if (isHero && useReadableHero) {
+        if (el.type !== 'text') el.type = 'text';
+        el.readOnly = true;
+        if (typeof el.setAttribute === 'function') el.setAttribute('inputmode', 'none');
+        if (el.dataset) el.dataset.iso = val || '';
+        el.value = val ? formatDateReadable(val) : '';
+      } else {
+        if (isHero && el.type !== 'date') el.type = 'date';
+        if (isHero) {
+          el.readOnly = false;
+          if (typeof el.removeAttribute === 'function') el.removeAttribute('inputmode');
+          if (el.dataset) el.dataset.iso = val || '';
+        }
+        el.min = min;
+        el.value = val || '';
+      }
     });
   }
 
@@ -875,12 +909,14 @@
 
     ['hero-checkin', 'book-checkin'].forEach((id) => {
       document.getElementById(id)?.addEventListener('change', (e) => {
+        if (e.target.readOnly) return;
         syncDatesFromInputs('checkin', e.target.value);
       });
     });
 
     ['hero-checkout', 'book-checkout'].forEach((id) => {
       document.getElementById(id)?.addEventListener('change', (e) => {
+        if (e.target.readOnly) return;
         syncDatesFromInputs('checkout', e.target.value);
       });
     });
@@ -979,11 +1015,27 @@
     const dict = getDict();
     const summaryEl = document.getElementById('stay-summary-text');
     const previewEl = document.getElementById('wa-message-preview');
+    const selInEl = document.getElementById('cal-sel-checkin');
+    const selOutEl = document.getElementById('cal-sel-checkout');
+    const selNightsEl = document.getElementById('cal-sel-nights');
+    const stickySubEl = document.getElementById('sticky-bar-sub');
     if (!summaryEl || !dict.booking) return;
 
     const nights = computeNights(state.checkin, state.checkout);
     const isEn = state.lang === 'en';
     const party = formatPartyDetails(isEn);
+    const nightWord = nights === 1 ? dict.booking.nightSingle : dict.booking.nightPlural;
+
+    if (selInEl) selInEl.textContent = state.checkin ? formatDateReadable(state.checkin) : '--';
+    if (selOutEl) selOutEl.textContent = state.checkout ? formatDateReadable(state.checkout) : '--';
+    if (selNightsEl) {
+      selNightsEl.textContent = nights > 0 ? `${nights} ${nightWord}` : '--';
+    }
+    if (stickySubEl) {
+      stickySubEl.textContent = (nights >= CONFIG.minNights && state.checkin && state.checkout)
+        ? `${formatDateShort(state.checkin)} - ${formatDateShort(state.checkout)} (${nights} ${nightWord})`
+        : (dict.sticky?.sub || '');
+    }
 
     if (nights <= 0) {
       summaryEl.textContent = dict.booking.summaryEmpty;
@@ -1004,7 +1056,6 @@
       fbEl.textContent = '';
     }
 
-    const nightWord = nights === 1 ? dict.booking.nightSingle : dict.booking.nightPlural;
     const petChip = state.pets > 0 ? ` · ${party.petsLbl}` : '';
     summaryEl.textContent = `${dict.booking.summaryPrefix} ${formatDateReadable(state.checkin)} → ${formatDateReadable(state.checkout)} (${nights} ${nightWord}) · ${party.adultsLbl}, ${party.childrenLbl}${petChip}`;
 
@@ -1019,8 +1070,12 @@
     const name = (document.getElementById('book-name')?.value || '').trim();
     const email = (document.getElementById('book-email')?.value || '').trim();
     const phone = (document.getElementById('book-phone')?.value || '').trim();
-    const checkin = state.checkin || document.getElementById('book-checkin')?.value || document.getElementById('hero-checkin')?.value || '';
-    const checkout = state.checkout || document.getElementById('book-checkout')?.value || document.getElementById('hero-checkout')?.value || '';
+    const bookInEl = document.getElementById('book-checkin');
+    const bookOutEl = document.getElementById('book-checkout');
+    const heroInEl = document.getElementById('hero-checkin');
+    const heroOutEl = document.getElementById('hero-checkout');
+    const checkin = state.checkin || bookInEl?.value || heroInEl?.dataset?.iso || (heroInEl?.type === 'date' ? heroInEl.value : '') || '';
+    const checkout = state.checkout || bookOutEl?.value || heroOutEl?.dataset?.iso || (heroOutEl?.type === 'date' ? heroOutEl.value : '') || '';
     const notes = (document.getElementById('book-notes')?.value || '').trim();
 
     const extras = [];
@@ -1691,6 +1746,8 @@
       if (locBtn) {
         state.activeLocationId = locBtn.getAttribute('data-loc-id');
         renderLocationItems();
+        const distancesWrap = document.getElementById('distances-list');
+        scrollContainerToCenter(distancesWrap, distancesWrap?.querySelector('.distance-item.is-active'));
         return;
       }
 
@@ -1859,9 +1916,8 @@
       showFormFeedback('success', dict.booking.successWa, waUrl);
     });
 
-    // Direct Booking Buttons (WhatsApp, Email, Copy)
-    document.getElementById('booking-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
+    // Direct Booking Buttons (WhatsApp, Email, Sticky Bar & Copy)
+    function triggerWhatsAppBooking() {
       const dict = getDict();
       const payload = collectBookingPayload('whatsapp');
       if (!payload.valid) {
@@ -1873,12 +1929,32 @@
       }
       const waUrl = openWhatsApp(payload.message);
       showFormFeedback('success', dict.booking.successWa, waUrl);
+    }
+
+    document.getElementById('booking-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      triggerWhatsAppBooking();
+    });
+
+    document.getElementById('sticky-wa-btn')?.addEventListener('click', () => {
+      triggerWhatsAppBooking();
     });
 
     document.getElementById('btn-send-email')?.addEventListener('click', () => {
       const dict = getDict();
       const payload = collectBookingPayload('email');
       if (!payload.valid) {
+        const nights = computeNights(state.checkin, state.checkout);
+        if (nights >= CONFIG.minNights) {
+          const optDetails = document.getElementById('booking-optional-details');
+          if (optDetails && !optDetails.open) {
+            optDetails.open = true;
+          }
+          const nameInput = document.getElementById('book-name');
+          const emailInput = document.getElementById('book-email');
+          const focusTarget = (nameInput && !nameInput.value.trim()) ? nameInput : emailInput;
+          focusTarget?.focus();
+        }
         showFormFeedback('error', payload.error);
         return;
       }
@@ -1902,7 +1978,7 @@
       }
     });
 
-    // Reviews Filters, View Toggle, Prev/Next & Resize
+    // Reviews Filters, View Toggle, Prev/Next, Swipe & Resize
     document.querySelectorAll('[data-rev-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.reviewFilter = btn.getAttribute('data-rev-filter') || 'all';
@@ -1919,23 +1995,44 @@
       }
     });
 
-    document.getElementById('reviews-prev')?.addEventListener('click', () => {
+    function stepReviewsPage(delta) {
       const items = getFilteredReviews();
       const maxPage = Math.max(0, Math.ceil(items.length / getReviewsPerView()) - 1);
-      state.activeReviewPage = state.activeReviewPage <= 0 ? maxPage : state.activeReviewPage - 1;
+      if (delta < 0) {
+        state.activeReviewPage = state.activeReviewPage <= 0 ? maxPage : state.activeReviewPage - 1;
+      } else {
+        state.activeReviewPage = state.activeReviewPage >= maxPage ? 0 : state.activeReviewPage + 1;
+      }
       updateReviewsPosition();
-    });
-    document.getElementById('reviews-next')?.addEventListener('click', () => {
-      const items = getFilteredReviews();
-      const maxPage = Math.max(0, Math.ceil(items.length / getReviewsPerView()) - 1);
-      state.activeReviewPage = state.activeReviewPage >= maxPage ? 0 : state.activeReviewPage + 1;
-      updateReviewsPosition();
-    });
+    }
+
+    document.getElementById('reviews-prev')?.addEventListener('click', () => stepReviewsPage(-1));
+    document.getElementById('reviews-next')?.addEventListener('click', () => stepReviewsPage(1));
+
+    const reviewsCarousel = document.getElementById('reviews-carousel');
+    let revTouchStartX = 0;
+    let revTouchStartY = 0;
+    reviewsCarousel?.addEventListener('touchstart', (e) => {
+      if (!e.changedTouches?.length) return;
+      revTouchStartX = e.changedTouches[0].clientX;
+      revTouchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+    reviewsCarousel?.addEventListener('touchend', (e) => {
+      if (state.reviewsExpanded || !e.changedTouches?.length) return;
+      const deltaX = e.changedTouches[0].clientX - revTouchStartX;
+      const deltaY = e.changedTouches[0].clientY - revTouchStartY;
+      if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        stepReviewsPage(deltaX > 0 ? -1 : 1);
+      }
+    }, { passive: true });
 
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(renderReviewsCarousel, 160);
+      resizeTimer = setTimeout(() => {
+        renderReviewsCarousel();
+        syncDateInputs();
+      }, 160);
     });
 
     // Lightbox Controls & Keyboard
