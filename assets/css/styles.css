@@ -2366,6 +2366,10 @@ textarea.form-control {
   font-weight: 600;
 }
 
+#calendario {
+  scroll-margin-top: 92px;
+}
+
 .cal-widget {
   width: 100%;
   background-color: var(--bg-primary);
@@ -2373,6 +2377,12 @@ textarea.form-control {
   border-radius: var(--radius-md);
   padding: clamp(0.7rem, 2.2vw, 1.1rem);
   user-select: none;
+  transition: border-color 0.45s var(--ease-editorial), box-shadow 0.45s var(--ease-editorial);
+}
+
+.cal-widget.is-focused {
+  border-color: var(--accent-terracotta);
+  box-shadow: 0 0 0 4px rgba(184, 93, 59, 0.18), var(--shadow-soft);
 }
 
 .hero-cal-popover .cal-widget {

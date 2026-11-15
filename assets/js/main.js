@@ -1529,6 +1529,37 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
+    // Anchor Navigation & Calendar Highlight Helpers
+    let calFocusTimer = null;
+    function highlightBookingCalendar() {
+      const calEl = document.getElementById('booking-calendar');
+      if (!calEl) return;
+      calEl.classList.remove('is-focused');
+      void calEl.offsetWidth;
+      calEl.classList.add('is-focused');
+      clearTimeout(calFocusTimer);
+      calFocusTimer = setTimeout(() => {
+        calEl.classList.remove('is-focused');
+      }, 1700);
+    }
+
+    function scrollToTarget(targetEl, offset = -76) {
+      if (!targetEl) return;
+      if (lenisInstance && !prefersReducedMotion) {
+        lenisInstance.scrollTo(targetEl === document.body ? 0 : targetEl, {
+          offset: targetEl === document.body ? 0 : offset,
+          duration: 1.15
+        });
+      } else if (targetEl === document.body) {
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+      } else {
+        targetEl.scrollIntoView({
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start'
+        });
+      }
+    }
+
     // Language switch, hash anchor smooth scrolling & delegated UI clicks
     document.addEventListener('click', (e) => {
       const anchorLink = e.target.closest('a[href^="#"]');
@@ -1539,19 +1570,9 @@
           if (targetEl) {
             e.preventDefault();
             setMobileMenu(false);
-            if (lenisInstance && !prefersReducedMotion) {
-              lenisInstance.scrollTo(href === '#top' ? 0 : targetEl, {
-                offset: href === '#top' ? 0 : -76,
-                duration: 1.15
-              });
-            } else if (href === '#top') {
-              window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-            } else {
-              targetEl.scrollIntoView({
-                behavior: prefersReducedMotion ? 'auto' : 'smooth',
-                block: 'start'
-              });
-            }
+            const isCalendarAnchor = href === '#calendario' || href === '#booking-calendar';
+            scrollToTarget(targetEl, isCalendarAnchor ? -92 : -76);
+            if (isCalendarAnchor) highlightBookingCalendar();
             return;
           }
         }
@@ -1767,7 +1788,9 @@
       const payload = collectBookingPayload('whatsapp');
       if (!payload.valid) {
         showFormFeedback('error', payload.error);
-        document.getElementById('booking-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const calTarget = document.getElementById('calendario') || document.getElementById('booking-calendar');
+        scrollToTarget(calTarget, -92);
+        highlightBookingCalendar();
         return;
       }
       showFormFeedback('success', dict.booking.successWa);
@@ -1903,7 +1926,7 @@
             stickyBar.classList.toggle('is-hidden', entry.isIntersecting);
           });
         },
-        { threshold: 0.12 }
+        { threshold: 0.05 }
       );
       observer.observe(bookingSection);
     }
