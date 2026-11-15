@@ -1,0 +1,70 @@
+name: Sync Airbnb iCal
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-ical:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Airbnb iCal and update JSON
+        env:
+          AIRBNB_ICAL_URL: https://www.airbnb.it/calendar/ical/1134012891756639465.ics?t=0696334737ca4cc78180a9b42bccc5c7
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            (async () => {
+              const res = await fetch(process.env.AIRBNB_ICAL_URL, {
+                headers: { "User-Agent": "Mozilla/5.0" }
+              });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const raw = (await res.text()).replace(/\r\n?/g, "\n").trim();
+              if (!raw.includes("BEGIN:VCALENDAR")) {
+                throw new Error("Invalid iCal payload");
+              }
+              const unfolded = raw.replace(/\n[ \t]/g, "");
+              const events = unfolded.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) || [];
+              const blockedRanges = [];
+              for (const ev of events) {
+                const sm = ev.match(/DTSTART(?:;[^:]*)?:(\d{4})(\d{2})(\d{2})/);
+                if (!sm) continue;
+                const start = `${sm[1]}-${sm[2]}-${sm[3]}`;
+                const em = ev.match(/DTEND(?:;[^:]*)?:(\d{4})(\d{2})(\d{2})/);
+                const end = em ? `${em[1]}-${em[2]}-${em[3]}` : start;
+                blockedRanges.push({ start, end });
+              }
+              const payload = {
+                updatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+                source: "airbnb",
+                blockedRanges
+              };
+              fs.mkdirSync(path.join(process.cwd(), "assets/data"), { recursive: true });
+              fs.writeFileSync(path.join(process.cwd(), "assets/data/airbnb.ics"), raw + "\n");
+              fs.writeFileSync(path.join(process.cwd(), "assets/data/availability.json"), JSON.stringify(payload, null, 2) + "\n");
+              console.log(`Synced ${blockedRanges.length} blocked ranges.`);
+            })().catch((err) => {
+              console.error(err);
+              process.exit(1);
+            });
+          '
+
+      - name: Commit updated availability
+        run: |
+          if [ -n "$(git status --porcelain -- assets/data/airbnb.ics assets/data/availability.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -- assets/data/airbnb.ics assets/data/availability.json
+            git commit -m "chore(ical): sync Airbnb availability"
+            git push
+          else
+            echo "No calendar changes detected."
+          fi

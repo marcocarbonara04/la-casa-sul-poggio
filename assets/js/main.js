@@ -12,8 +12,16 @@
     defaultLang: 'it',
     minNights: 2,
     // Inserisci qui gli URL iCal (.ics tramite proxy/worker o file .ics/.json) o periodi occupati manuali:
-    icalFeeds: [],
-    blockedRanges: [] // es. [{ start: '2026-08-10', end: '2026-08-15' }] (end = giorno di check-out, libero per nuovo check-in)
+    icalFeeds: [
+      'assets/data/availability.json',
+      'assets/data/airbnb.ics',
+      'https://www.airbnb.it/calendar/ical/1134012891756639465.ics?t=0696334737ca4cc78180a9b42bccc5c7'
+    ],
+    blockedRanges: [
+      { start: '2026-11-15', end: '2026-11-16' },
+      { start: '2026-12-31', end: '2027-01-02' },
+      { start: '2027-04-22', end: '2027-04-26' }
+    ]
   };
 
   const state = {
@@ -672,6 +680,60 @@
     return false;
   }
 
+  function fetchIcalFeedText(feedUrl) {
+    if (!feedUrl || typeof fetch !== 'function') return Promise.resolve('');
+    const isRemote = /^https?:\/\//i.test(feedUrl);
+    const cacheBucket = Math.floor(Date.now() / 300000);
+    const candidates = isRemote
+      ? [
+          feedUrl,
+          `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`,
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}`
+        ]
+      : [`${feedUrl}${feedUrl.includes('?') ? '&' : '?'}v=${cacheBucket}`];
+
+    let idx = 0;
+    function tryNext() {
+      if (idx >= candidates.length) return Promise.resolve('');
+      const url = candidates[idx++];
+      return fetch(url)
+        .then((res) => (res && res.ok ? res.text() : ''))
+        .then((txt) => {
+          const trimmed = (txt || '').trim();
+          const isValid =
+            trimmed.includes('BEGIN:VCALENDAR') ||
+            trimmed.startsWith('{') ||
+            trimmed.startsWith('[');
+          return isValid ? trimmed : tryNext();
+        })
+        .catch(() => tryNext());
+    }
+    return tryNext();
+  }
+
+  function applyFeedPayload(raw) {
+    if (!raw) return false;
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const list = Array.isArray(parsed) ? parsed : (parsed.blockedRanges || parsed.ranges || []);
+        list.forEach((r) => {
+          if (r && r.start) addBlockedRange(r.start, r.end || r.start);
+        });
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+    if (trimmed.includes('BEGIN:VCALENDAR')) {
+      parseIcsAndBlock(trimmed);
+      return true;
+    }
+    return false;
+  }
+
   function initBlockedDates() {
     if (Array.isArray(CONFIG.blockedRanges)) {
       CONFIG.blockedRanges.forEach((r) => {
@@ -679,26 +741,35 @@
       });
     }
 
+    try {
+      const cached = localStorage.getItem('poggio_ical_cache');
+      if (cached) {
+        const dates = JSON.parse(cached);
+        if (Array.isArray(dates)) {
+          dates.forEach((d) => {
+            if (typeof d === 'string') state.bookedDates.add(d);
+          });
+        }
+      }
+    } catch (_) {
+      /* ignore storage errors */
+    }
+
     if (Array.isArray(CONFIG.icalFeeds) && CONFIG.icalFeeds.length > 0 && typeof fetch === 'function') {
       CONFIG.icalFeeds.forEach((feedUrl) => {
         if (!feedUrl) return;
-        fetch(feedUrl)
-          .then((res) => (res.ok ? res.text() : ''))
+        fetchIcalFeedText(feedUrl)
           .then((raw) => {
-            if (!raw) return;
-            const trimmed = raw.trim();
-            if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-              const parsed = JSON.parse(trimmed);
-              const list = Array.isArray(parsed) ? parsed : (parsed.blockedRanges || parsed.ranges || []);
-              list.forEach((r) => {
-                if (r && r.start) addBlockedRange(r.start, r.end || r.start);
-              });
-            } else {
-              parseIcsAndBlock(raw);
+            if (!applyFeedPayload(raw)) return;
+            try {
+              localStorage.setItem('poggio_ical_cache', JSON.stringify(Array.from(state.bookedDates)));
+            } catch (_) {
+              /* ignore storage errors */
             }
             if (rangeHasBookedDate(state.checkin, state.checkout)) {
               state.checkin = '';
               state.checkout = '';
+              state.datesUserSelected = false;
               syncDateInputs();
               updateStaySummary();
             }
